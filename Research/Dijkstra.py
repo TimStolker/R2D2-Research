@@ -4,7 +4,6 @@ import copy
 import time
 import statistics as stats
 
-
 def findNeighbours(n,graph):
     neighbours = set()
     for group in graph.E:
@@ -47,8 +46,8 @@ def getPath(node, start, path):
     getPath(node[key][1]["prev"], start, path)
 
 
-def DPath(gr2, start, finish):
-    graph = copy.deepcopy(gr2)
+def DPath(schoolLayout, start, finish):
+    graph = copy.deepcopy(schoolLayout)
     for n in graph:
         graph[n][1]["dist"] = float('inf')
         graph[n][1]["prev"] = None
@@ -90,7 +89,7 @@ def DPath(gr2, start, finish):
 
 
 DGraph = dict
-gr2 = {1: ("", {2:9}),
+schoolLayout = {1: ("", {2:9}),
        2: ("", {1:9, 3:11}),
        3: ("", {2:11, 8:8.5}),
        4: ("", {5:6, 6:5}),
@@ -125,4 +124,4 @@ gr2 = {1: ("", {2:9}),
        33: ("", {31:2.5, 32:3.5})
       }
 
-print(DPath(gr2, 21, 28))
+print(DPath(schoolLayout, 21, 28))
