@@ -7,11 +7,18 @@ def getState(node, schoolLayout):
     return stateList
 
 def checkFinished(path_state, end_node):
+    #print("path: ",path_state)
+    #print("end: ",end_node)
     if path_state == end_node:
         return True
     else:
         return False
 
+def value_out(node):
+    if(node.finished):
+        return 1
+    else:
+        return 0
 
 
 class PathTreeNode:
@@ -27,10 +34,27 @@ class PathTreeNode:
         # print("Node:\n")
         print("  has_parent: " + str(self.parent is not None))
         print("  no. of children: " + str(len(self.children)))
-        #print("  result: " + (("player " + str(
-            #self.won) + " won" if self.who is not 0 else "draw") if self.finished else "not yet finished"))
         print("  path state:")
         print(state)
+
+
+class pathTreeNode2:
+    def __init__(self, gstate, end_node, parentNode=None, last_move=None):
+        self.value = None
+        self.state = gstate
+        self.finished = checkFinished(self.state, end_node)
+        self.parent = parentNode
+        self.children = []
+        self.move = last_move
+
+    def best_move(self):
+        self.value = value_out(self)
+        best_value = self.value
+        for ch in self.children:
+            ch.value = value_out(ch)
+            if ch.value is best_value:
+                return ch.move
+        return None  #als het geen children heeft
 
 def validMoves(state):
     moves = []
@@ -38,12 +62,12 @@ def validMoves(state):
         moves.append(key)
     return moves
 
-def makeMove(move, schoolLayout):
+def makeMove(tree_node, move, schoolLayout):
     return schoolLayout[move] #lijst van mogelijke zetten en lengtes
 
 def expandAllByOne(tree_node, valid_moves, schoolLayout, end_node):
     for move in valid_moves:
-        new_state = makeMove(move, schoolLayout)
+        new_state = makeMove(tree_node, move, schoolLayout)
         tree_node.children.append(PathTreeNode(new_state, end_node, parentNode=tree_node, last_move=move))
     return True
 
@@ -60,7 +84,21 @@ def tree2String(tree_node, prefix=""):
         result+=prefix+"}\n"
     return result
 
-#def expandTreeRec(tree_node, valid_moves)
+def expandTreeRec(tree_node, valid_moves, schoolLayout, end_node):
+    if(len(valid_moves)==0):
+        valid_moves = validMoves(tree_node.state)
+        if tree_node == end_node:
+            print("REE")
+            return False
+    for i in range(len(valid_moves)):
+        new_state = makeMove(tree_node.state, valid_moves[-1], schoolLayout)
+        tree_node.children.append(pathTreeNode2(new_state, end_node, parentNode=tree_node, last_move=valid_moves[-1]))
+        valid_moves.remove(valid_moves[-1])
+
+        expandTreeRec(tree_node.children[i], [], schoolLayout, end_node)
+    return tree_node
+
+
 
 schoolLayout = {1: ("", {2:9}),
        2: ("", {1:9, 3:11}),
@@ -100,11 +138,20 @@ schoolLayout = {1: ("", {2:9}),
 start = 15
 end = 31
 
-validMovesEnd = validMoves(getState(end,schoolLayout)) #Dit wordt gebruikt om te checken bij finished
+validMovesEnd = tuple(getState(end,schoolLayout)) #Dit wordt gebruikt om te checken bij finished
 state = getState(start,schoolLayout)
 
 root = PathTreeNode(state, validMovesEnd, parentNode=None, last_move=None)
-#root.printNode()
+testroot = pathTreeNode2(state, validMovesEnd, parentNode=None, last_move=None)
+
+
 moves = validMoves(state)
-expandAllByOne(root, moves, schoolLayout, end)
-print(tree2String(root))
+testmoves = validMoves(testroot.state)
+
+testroot = expandTreeRec(testroot, testmoves, schoolLayout, validMovesEnd)
+
+print(testroot.best_move())
+print(tree2String(testroot))
+
+#expandAllByOne(root, moves, schoolLayout, end)
+#print(tree2String(root))
