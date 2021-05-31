@@ -5,51 +5,6 @@ import time
 import statistics as stats
 
 
-# Een zeer generieke manier om een graaf de implementeren is er
-# daarwerkelijk twee sets van te maken op basis van twee classes:
-class Vertex:
-    def __init__(self, identifier, data_):
-        self.id = identifier
-        self.data = data_
-
-    def __eq__(self, other):  # nodig om aan een set toe te voegen
-        return self.id == other.id
-
-    def __hash__(self):  # nodig om aan een set toe te voegen
-        return hash(self.id)
-
-    def __repr__(self):
-        return str(self.id) + ":" + str(self.data)
-
-
-class Edge:
-    def __init__(self, vertex1, vertex2, data_):
-        if (vertex1.id < vertex2.id):
-            self.v1 = vertex1
-            self.v2 = vertex2
-        else:
-            self.v1 = vertex2
-            self.v2 = vertex1
-        self.data = data_
-
-    def __eq__(self, other):  # nodig om aan een set toe te voegen
-        return self.v1.id == other.v1.id and self.v2.id == self.v2.id
-
-    def __hash__(self):  # nodig om aan een set toe te voegen
-        return hash(str(self.v1.id) + "," + str(self.v2.id))
-
-    def __repr__(self):
-        return "(" + str(self.v1.id) + "," + str(self.v2.id) + "):" + str(self.data)
-
-
-class CGraph:
-    def __init__(self):
-        self.V = set()
-        self.E = set()
-
-    def __str__(self):
-        return "V: " + str(self.V) + "\nE: " + str(self.E)
-
 def findNeighbours(n,graph):
     neighbours = set()
     for group in graph.E:
