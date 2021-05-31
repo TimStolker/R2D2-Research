@@ -1,9 +1,9 @@
 # R2D2-Research
 
 ## Team 5
-  -Alexander De Graaff
-  -Jippe Heijnen
-  -Tim Stolker
+  - Alexander De Graaff
+  - Jippe Heijnen
+  - Tim Stolker
 
 ## Doel
 Het doel van dit onderzoek is een bekende omgeving om te zetten naar een graaf en die aan een set pathfinding algoritmes te geven om te kijken welke van de algoritmes het snelste en meest accuraat functioneert.
