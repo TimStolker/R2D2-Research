@@ -1,13 +1,20 @@
 
-def heuristic(start_node, target_node):
+def heuristic(current_node, target_node):
     pathsToLandmark = {1: 67.0, 2: 58.0, 3: 47.0, 4: 37.5, 5: 43.5, 6: 32.5, 7: 38.5, 8: 38.5, 9: 44.5, 10: 36.5, 11: 28.5, 12: 30.5,
             13: 22.5, 14: 28.5, 15: 13.5, 16: 6.0, 17: 6.5, 18: 2.5, 19: 4.5, 20: 0, 21: 8, 22: 14, 23: 33.0, 24: 14, 25: 41.0,
             26: 35.0, 27: 18, 28: 24, 29: 49.0, 30: 43.0, 31: 24, 32: 28.5, 33: 26.5}
 
-    return abs(pathsToLandmark[target_node] - pathsToLandmark[start_node])
+
+    if current_node > 19:
+        print(pathsToLandmark[target_node], "-", pathsToLandmark[current_node], "=")
+        return abs(pathsToLandmark[target_node] - pathsToLandmark[current_node])
+    print(pathsToLandmark[target_node], "+", pathsToLandmark[current_node], "=")
+    return pathsToLandmark[target_node] + pathsToLandmark[current_node]
 
 
 def get_minimum_f(graph):
+    print("------")
+    print(graph)
     minimum_key = list(graph.keys())[0]
     for key in graph.keys():
         if graph[key][1] < graph[minimum_key][1]:
@@ -19,6 +26,7 @@ def a_star(graph, start_node, target_node):
     route = []
     visited = {}
     unvisited = {}
+    distance = 0
 
     for key in graph.keys():
         unvisited[key] = [float('inf'), float('inf'), None] # G, F, PREV
@@ -27,11 +35,11 @@ def a_star(graph, start_node, target_node):
     unvisited[start_node] = [0, h_score, None]
 
     finished = False
+    current_node = get_minimum_f(unvisited)
     while not finished:
         if len(unvisited) == 0:
             finished = True
         else:
-            current_node = get_minimum_f(unvisited)
             if current_node == target_node:
                 finished = True
                 visited[current_node] = unvisited[current_node]
@@ -45,8 +53,21 @@ def a_star(graph, start_node, target_node):
                             unvisited[neighbour][2] = current_node
                 visited[current_node] = unvisited[current_node]
                 route.append(current_node)
+                print(route)
                 del unvisited[current_node]
-    return route
+
+            neighbours = {}
+            for neighbour_key in graph[current_node][1].keys():
+                if neighbour_key in unvisited:
+                    neighbours[neighbour_key] = unvisited[neighbour_key]
+            if target_node in neighbours:
+                current_node = target_node
+            else:
+                current_node = get_minimum_f(neighbours)
+            if unvisited[current_node][0] != float('inf'):
+                distance = unvisited[current_node][0]
+    route.append(target_node)
+    return distance, route
 
 
 gr2 = {1: ("", {2:9} ),
@@ -84,4 +105,4 @@ gr2 = {1: ("", {2:9} ),
        33: ("", {31:2.5, 32:3.5})
       }
 
-print(a_star(gr2, 21, 28))
+print(a_star(gr2, 1, 31))
