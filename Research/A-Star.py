@@ -1,11 +1,10 @@
-import copy
 
 def heuristic(start_node, target_node):
     pathsToLandmark = {1: 67.0, 2: 58.0, 3: 47.0, 4: 37.5, 5: 43.5, 6: 32.5, 7: 38.5, 8: 38.5, 9: 44.5, 10: 36.5, 11: 28.5, 12: 30.5,
             13: 22.5, 14: 28.5, 15: 13.5, 16: 6.0, 17: 6.5, 18: 2.5, 19: 4.5, 20: 0, 21: 8, 22: 14, 23: 33.0, 24: 14, 25: 41.0,
             26: 35.0, 27: 18, 28: 24, 29: 49.0, 30: 43.0, 31: 24, 32: 28.5, 33: 26.5}
 
-    return pathsToLandmark[start_node] + pathsToLandmark[target_node]
+    return abs(pathsToLandmark[target_node] - pathsToLandmark[start_node])
 
 
 def get_minimum_f(graph):
@@ -17,6 +16,7 @@ def get_minimum_f(graph):
 
 
 def a_star(graph, start_node, target_node):
+    route = []
     visited = {}
     unvisited = {}
 
@@ -44,8 +44,9 @@ def a_star(graph, start_node, target_node):
                             unvisited[neighbour][1] = new_g_score + heuristic(neighbour, target_node)
                             unvisited[neighbour][2] = current_node
                 visited[current_node] = unvisited[current_node]
+                route.append(current_node)
                 del unvisited[current_node]
-    return visited
+    return route
 
 
 gr2 = {1: ("", {2:9} ),
