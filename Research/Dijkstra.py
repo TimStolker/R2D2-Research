@@ -1,6 +1,7 @@
 import copy
 
-def findNeighbours(n,graph):
+
+def findNeighbours(n, graph):
     neighbours = set()
     for group in graph.E:
         if (group.v1 == n) or (group.v2 == n):
@@ -9,7 +10,6 @@ def findNeighbours(n,graph):
             elif group.v2 != n:
                 neighbours.add(group.v2)
     return neighbours
-
 
 
 def minDist(N):
@@ -36,7 +36,7 @@ def getPath(node, start, path):
     key = list(node.keys())[0]
     path.append(key)
 
-    if (key == start):
+    if key == start:
         return path
 
     getPath(node[key][1]["prev"], start, path)
@@ -51,10 +51,9 @@ def DPath(schoolLayout, start, finish):
 
     graph[start][1]["dist"] = 0
     S = {}
-    N = {}
-    N[start] = graph[start]
+    N = {start: graph[start]}
 
-    while (len(N) != 0):
+    while len(N) != 0:
         n = minDist(N)
         n_key = list(n.keys())[0]
         n[n_key][1]["solved"] = True
@@ -67,24 +66,21 @@ def DPath(schoolLayout, start, finish):
 
         neighbours = findNeighboursD(n, graph, n_key)
         for m in neighbours:
-            if (neighbours[m][1]["solved"] == False):
+            if not neighbours[m][1]["solved"]:
                 if m not in N:
                     N[m] = graph[m]
-
                 altDistance = n[n_key][1]["dist"] + n[n_key][1][m]
-                if (neighbours[m][1]["dist"] > altDistance):
+                if neighbours[m][1]["dist"] > altDistance:
                     neighbours[m][1]["dist"] = altDistance
                     neighbours[m][1]["prev"] = n
 
-    node = {}
-    node[finish] = graph[finish]
+    node = {finish: graph[finish]}
     path = []
     getPath(node, start, path)
     path.reverse()
     return node[finish][1]["dist"], path
 
 
-DGraph = dict
 schoolLayout = {1: ("", {2:9}),
        2: ("", {1:9, 3:11}),
        3: ("", {2:11, 8:8.5}),
@@ -120,4 +116,4 @@ schoolLayout = {1: ("", {2:9}),
        33: ("", {31:2.5, 32:3.5})
       }
 
-print(DPath(schoolLayout, 21, 28))
+print(DPath(schoolLayout, 1, 30))
