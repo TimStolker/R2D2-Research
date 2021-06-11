@@ -62,7 +62,10 @@ def a_star(graph, start_node, target_node):
             if target_node in neighbours:
                 current_node = target_node
             else:
-                current_node = get_minimum_f(neighbours)
+                if current_node != target_node:
+                    current_node = get_minimum_f(neighbours)
+                else:
+                    finished = True
             if unvisited[current_node][0] != float('inf'):
                 distance = unvisited[current_node][0]
     route.append(target_node)
@@ -104,4 +107,7 @@ schoolLayout  = {1: ("", {2: 9}),
        33: ("", {31: 2.5, 32: 3.5})
        }
 
-print(a_star(schoolLayout , 1, 30))
+print(a_star(schoolLayout , 1, 29))
+#for i in range(32):
+#    for j in range(32):
+#        print(a_star(schoolLayout, i+1, j+1))
