@@ -3,7 +3,7 @@ import math
 
 def heuristic(current_node, target_node):
     nodeCords = {
-        1: (0, 17), 2: (9, 17), 3: (9, 6), 4: (10.5, 19), 5: (10.5, 25), 6: (15.5, 19), 7: (15.5, 25), 8: (17.5, 6),
+        1: (0, 17), 2: (9, 17), 3: (9, 6), 4: (10.5, 19), 5: (10.5, 24), 6: (15.5, 19), 7: (15.5, 25), 8: (17.5, 6),
         9: (17.5, 0), 10: (19.5, 6), 11: (19.5, 19), 12: (25.5, 6), 13: (25.5, 19), 14: (25.5, 25), 15: (42.5, 6),
         16: (42, 19), 17: (42, 21), 18: (45.5, 19), 19: (45.5, 21),20: (48, 19), 21: (56, 19), 22: (56, 25),
         23: (62, 6), 24: (62, 19), 25: (64, 0), 26: (64, 6), 27: (66, 19),28: (66, 25), 29: (72, 0),
@@ -14,10 +14,15 @@ def heuristic(current_node, target_node):
     return math.sqrt((cordsX * cordsX) + (cordsY * cordsY))
 
 
-def get_minimum_f(graph):
-    minimum_key = list(graph.keys())[0]
-    for key in graph.keys():
-        if graph[key][1] < graph[minimum_key][1]:
+def get_minimum_f(unvisited, graph):
+    minimum_key = list(unvisited.keys())[0]
+    i = 0
+    for key in unvisited.keys():
+        if(len(graph[key][1])) > 1:
+            minimum_key = list(unvisited.keys())[i]
+        i += 1
+    for key in unvisited.keys():
+        if unvisited[key][1] < unvisited[minimum_key][1] and len(graph[key][1]) > 1:
             minimum_key = key
     return minimum_key
 
@@ -35,7 +40,7 @@ def a_star(graph, start_node, target_node):
     unvisited[start_node] = [0, h_score, None]
 
     finished = False
-    current_node = get_minimum_f(unvisited)
+    current_node = start_node
     while not finished:
         if len(unvisited) == 0:
             finished = True
@@ -53,6 +58,7 @@ def a_star(graph, start_node, target_node):
                             unvisited[neighbour][2] = current_node
                 visited[current_node] = unvisited[current_node]
                 route.append(current_node)
+                print(route)
                 del unvisited[current_node]
 
             neighbours = {}
@@ -63,7 +69,7 @@ def a_star(graph, start_node, target_node):
                 current_node = target_node
             else:
                 if current_node != target_node:
-                    current_node = get_minimum_f(neighbours)
+                    current_node = get_minimum_f(neighbours, graph)
                 else:
                     finished = True
             if unvisited[current_node][0] != float('inf'):
@@ -107,7 +113,8 @@ schoolLayout  = {1: ("", {2: 9}),
        33: ("", {31: 2.5, 32: 3.5})
        }
 
-print(a_star(schoolLayout , 1, 29))
+print(a_star(schoolLayout, 3, 4))
 #for i in range(32):
 #    for j in range(32):
+#        print("Starting:", i+1, " to ", j+1)
 #        print(a_star(schoolLayout, i+1, j+1))
