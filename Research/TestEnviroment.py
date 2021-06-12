@@ -90,7 +90,7 @@ def heuristic(current_node, target_node):
         9: (17.5, 0), 10: (19.5, 6), 11: (19.5, 19), 12: (25.5, 6), 13: (25.5, 19), 14: (25.5, 25), 15: (42.5, 6),
         16: (42, 19), 17: (10.5, 17), 18: (45.5, 19), 19: (72, 15.5), 20: (48, 19), 21: (56, 19), 22: (56, 25),
         23: (62, 6), 24: (62, 19), 25: (64, 0), 26: (64, 6), 27: (66, 19), 28: (66, 25), 29: (72, 0),
-        30: (72, 6), 31: (72, 19), 32: (74.5, 15.5), 33: (74.5, 19)
+        30: (72, 6), 31: (72, 19)
     }
     cordsX = (nodeCords[current_node][0] - nodeCords[target_node][0])
     cordsY = (nodeCords[current_node][1] - nodeCords[target_node][1])
@@ -179,7 +179,7 @@ schoolLayout = {1: ("", {2:9}),
        16: ("", {13:16.5, 18:3.5}),
        17: ("", {2:1.5, 4:2}),
        18: ("", {16:3.5, 20:2.5}),
-       19: ("", {30:9.5, 31:3.5, 32:2.5, 33:4.5}),
+       19: ("", {30:9.5, 31:3.5}),
        20: ("", {15:13.5, 18:2.5, 21:8}),
        21: ("", {20:8, 22:6, 24:6}),
        22: ("", {21:6, 28:10}),
@@ -191,19 +191,15 @@ schoolLayout = {1: ("", {2:9}),
        28: ("", {22:10, 27:6}),
        29: ("", {30:6}),
        30: ("", {26:8, 29:6, 19:9.5}),
-       31: ("", {27:6, 32:4.5, 33:2.5, 19:3.5}),
-       32: ("", {31:4.5, 33:3.5, 19:2.5}),
-       33: ("", {31:2.5, 32:3.5, 19:4.5}),
+       31: ("", { 19:3.5, 27:6}),
       }
 
-a_star(schoolLayout, 31, 23)
 
 mean_std_max = []
 stdev_std_max = []
 mean_my_max = []
 stdev_my_max = []
 meetpunten = list(range(1, 32, 1))
-print(meetpunten)
 for i in meetpunten:
     std = []
     my = []
@@ -227,7 +223,7 @@ plt.fill_between(meetpunten, np.array(mean_std_max) - np.array(stdev_std_max),
 plt.plot(meetpunten, mean_my_max, 'r-')
 plt.fill_between(meetpunten, np.array(mean_my_max) - np.array(stdev_my_max),
                  np.array(mean_my_max) + np.array(stdev_my_max), color='r', alpha=0.3)
-plt.xlabel("number of array elements")
+plt.xlabel("Start node")
 plt.ylabel("time (seconds)")
 plt.legend(["Dijksta", "A-Start"], loc='upper left')
 plt.show()
