@@ -5,16 +5,16 @@ def heuristic(current_node, target_node):
     nodeCords = {
         1: (0, 17), 2: (9, 17), 3: (9, 6), 4: (10.5, 19), 5: (10.5, 24), 6: (15.5, 19), 7: (15.5, 25), 8: (17.5, 6),
         9: (17.5, 0), 10: (19.5, 6), 11: (19.5, 19), 12: (25.5, 6), 13: (25.5, 19), 14: (25.5, 25), 15: (42.5, 6),
-        16: (42, 19), 17: (42, 21), 18: (45.5, 19), 19: (45.5, 21),20: (48, 19), 21: (56, 19), 22: (56, 25),
-        23: (62, 6), 24: (62, 19), 25: (64, 0), 26: (64, 6), 27: (66, 19),28: (66, 25), 29: (72, 0),
-        30: (72, 6), 31: (72, 19), 32: (74.5, 15.5), 33: (74.5, 19), 34: (72, 15.5), 35: (10.5, 17)
+        16: (42, 19), 17: (10.5, 17), 18: (45.5, 19), 19: (72, 15.5), 20: (48, 19), 21: (56, 19), 22: (56, 25),
+        23: (62, 6), 24: (62, 19), 25: (64, 0), 26: (64, 6), 27: (66, 19), 28: (66, 25), 29: (72, 0),
+        30: (72, 6), 31: (72, 19), 32: (74.5, 15.5), 33: (74.5, 19)
     }
     cordsX = (nodeCords[current_node][0] - nodeCords[target_node][0])
     cordsY = (nodeCords[current_node][1] - nodeCords[target_node][1])
     return math.sqrt((cordsX * cordsX) + (cordsY * cordsY))
 
 
-def get_minimum_f(unvisited, graph):
+def get_minimum_f(unvisited, graph, target):
     minimum_key = list(unvisited.keys())[0]
     i = 0
     for key in unvisited.keys():
@@ -22,8 +22,11 @@ def get_minimum_f(unvisited, graph):
             minimum_key = list(unvisited.keys())[i]
         i += 1
     for key in unvisited.keys():
-        if unvisited[key][1] < unvisited[minimum_key][1] and len(graph[key][1]) > 1:
+        if target in graph[key][1]:
             minimum_key = key
+        elif unvisited[key][1] < unvisited[minimum_key][1] and len(graph[key][1]) > 1:
+            minimum_key = key
+
     return minimum_key
 
 
@@ -52,13 +55,11 @@ def a_star(graph, start_node, target_node):
                 for neighbour in graph[current_node][1].keys():
                     if neighbour not in visited:
                         new_g_score = unvisited[current_node][0] + graph[current_node][1][neighbour]
-                        if new_g_score < unvisited[neighbour][0]:
-                            unvisited[neighbour][0] = new_g_score
-                            unvisited[neighbour][1] = new_g_score + heuristic(neighbour, target_node)
-                            unvisited[neighbour][2] = current_node
+                        unvisited[neighbour][0] = new_g_score
+                        unvisited[neighbour][1] = new_g_score + heuristic(neighbour, target_node)
+                        unvisited[neighbour][2] = current_node
                 visited[current_node] = unvisited[current_node]
                 route.append(current_node)
-                print(route)
                 del unvisited[current_node]
 
             neighbours = {}
@@ -69,7 +70,7 @@ def a_star(graph, start_node, target_node):
                 current_node = target_node
             else:
                 if current_node != target_node:
-                    current_node = get_minimum_f(neighbours, graph)
+                    current_node = get_minimum_f(neighbours, graph, target_node)
                 else:
                     finished = True
             if unvisited[current_node][0] != float('inf'):
@@ -79,9 +80,9 @@ def a_star(graph, start_node, target_node):
 
 
 schoolLayout = {1: ("", {2:9}),
-       2: ("", {1:9, 3:11, 35:1.5}),
+       2: ("", {1:9, 3:11, 17:1.5}),
        3: ("", {2:11, 8:8.5}),
-       4: ("", {5:6, 6:5, 35:2}),
+       4: ("", {5:6, 6:5, 17:2}),
        5: ("", {4:6}),
        6: ("", {4:5, 7:6, 11:4}),
        7: ("", {6:6, 14:10}),
@@ -93,10 +94,10 @@ schoolLayout = {1: ("", {2:9}),
        13: ("", {11:6, 14:6, 16:16.5}),
        14: ("", {7:10, 13:6}),
        15: ("", {12:17, 20:13.5, 23:19.5}),
-       16: ("", {13:16.5, 17:2, 18:3.5, 19:4}),
-       17: ("", {16:2, 18:4, 19:3.5}),
-       18: ("", {16:3.5, 17:4, 19:2, 20:2.5}),
-       19: ("", {16:4, 17:3.5, 18:2}),
+       16: ("", {13:16.5, 18:3.5}),
+       17: ("", {2:1.5, 4:2}),
+       18: ("", {16:3.5, 20:2.5}),
+       19: ("", {30:9.5, 31:3.5, 32:2.5, 33:4.5}),
        20: ("", {15:13.5, 18:2.5, 21:8}),
        21: ("", {20:8, 22:6, 24:6}),
        22: ("", {21:6, 28:10}),
@@ -107,19 +108,10 @@ schoolLayout = {1: ("", {2:9}),
        27: ("", {24:4, 28:6, 31:6}),
        28: ("", {22:10, 27:6}),
        29: ("", {30:6}),
-       30: ("", {26:8, 29:6, 34:9.5}),
-       31: ("", {27:6, 32:4.5, 33:2.5, 34:3.5}),
-       32: ("", {31:4.5, 33:3.5, 34:2.5}),
-       33: ("", {31:2.5, 32:3.5, 34:4.5}),
-       34: ("", {30:13,31:3.5, 32:2.5,33:4.5}),
-       35: ("", {2:1.5, 4:2})
+       30: ("", {26:8, 29:6, 19:9.5}),
+       31: ("", {27:6, 32:4.5, 33:2.5, 19:3.5}),
+       32: ("", {31:4.5, 33:3.5, 19:2.5}),
+       33: ("", {31:2.5, 32:3.5, 19:4.5}),
       }
 
-print("hurr 13", heuristic(13,12))
-print("hurr 10", heuristic(10,12))
-
-print(a_star(schoolLayout, 1, 12))
-#for i in range(32):
-#    for j in range(32):
-#        print("Starting:", i+1, " to ", j+1)
-#        print(a_star(schoolLayout, i+1, j+1))
+print(a_star(schoolLayout, 3, 33))
