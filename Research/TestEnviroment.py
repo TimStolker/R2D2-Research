@@ -1,5 +1,88 @@
+import copy
 import math
+from matplotlib import pyplot as plt
+import numpy as np
+import time
+import statistics as stats
 
+def findNeighbours(n, graph):
+    neighbours = set()
+    for group in graph.E:
+        if (group.v1 == n) or (group.v2 == n):
+            if group.v1 != n:
+                neighbours.add(group.v1)
+            elif group.v2 != n:
+                neighbours.add(group.v2)
+    return neighbours
+
+
+def minDist(N):
+    minValue = float('inf')
+    minDict = {}
+    for i in N:
+        if N[i][1]["dist"] < minValue:
+            minValue = N[i][1]["dist"]
+            minDict[i] = N[i]
+    return minDict
+
+
+def findNeighboursD(n, graph, n_key):
+    neighbours = {}
+    keys = n[n_key][1].keys()
+    for key in keys:
+        if key != "dist" and key != "prev" and key != "solved":
+            neighbours[key] = graph[key]
+
+    return neighbours
+
+
+def getPath(node, start, path):
+    key = list(node.keys())[0]
+    path.append(key)
+
+    if key == start:
+        return path
+
+    getPath(node[key][1]["prev"], start, path)
+
+
+def DPath(schoolLayout, start, finish):
+    graph = copy.deepcopy(schoolLayout)
+    for n in graph:
+        graph[n][1]["dist"] = float('inf')
+        graph[n][1]["prev"] = None
+        graph[n][1]["solved"] = False
+
+    graph[start][1]["dist"] = 0
+    S = {}
+    N = {start: graph[start]}
+
+    while len(N) != 0:
+        n = minDist(N)
+        n_key = list(n.keys())[0]
+        n[n_key][1]["solved"] = True
+
+        S.update(n)
+        del N[n_key]
+
+        if n_key == finish:
+            break
+
+        neighbours = findNeighboursD(n, graph, n_key)
+        for m in neighbours:
+            if not neighbours[m][1]["solved"]:
+                if m not in N:
+                    N[m] = graph[m]
+                altDistance = n[n_key][1]["dist"] + n[n_key][1][m]
+                if neighbours[m][1]["dist"] > altDistance:
+                    neighbours[m][1]["dist"] = altDistance
+                    neighbours[m][1]["prev"] = n
+
+    node = {finish: graph[finish]}
+    path = []
+    getPath(node, start, path)
+    path.reverse()
+    return node[finish][1]["dist"], path
 
 def heuristic(current_node, target_node):
     nodeCords = {
@@ -7,7 +90,7 @@ def heuristic(current_node, target_node):
         9: (17.5, 0), 10: (19.5, 6), 11: (19.5, 19), 12: (25.5, 6), 13: (25.5, 19), 14: (25.5, 25), 15: (42.5, 6),
         16: (42, 19), 17: (10.5, 17), 18: (45.5, 19), 19: (72, 15.5), 20: (48, 19), 21: (56, 19), 22: (56, 25),
         23: (62, 6), 24: (62, 19), 25: (64, 0), 26: (64, 6), 27: (66, 19), 28: (66, 25), 29: (72, 0),
-        30: (72, 6), 31: (72, 19), 32: (74.5, 15.5), 33: (74.5, 19)
+        30: (72, 6), 31: (72, 19)
     }
     cordsX = (nodeCords[current_node][0] - nodeCords[target_node][0])
     cordsY = (nodeCords[current_node][1] - nodeCords[target_node][1])
@@ -78,7 +161,6 @@ def a_star(graph, start_node, target_node):
     route.append(target_node)
     return distance, route
 
-
 schoolLayout = {1: ("", {2:9}),
        2: ("", {1:9, 3:11, 17:1.5}),
        3: ("", {2:11, 8:8.5}),
@@ -97,7 +179,7 @@ schoolLayout = {1: ("", {2:9}),
        16: ("", {13:16.5, 18:3.5}),
        17: ("", {2:1.5, 4:2}),
        18: ("", {16:3.5, 20:2.5}),
-       19: ("", {30:9.5, 31:3.5, 32:2.5, 33:4.5}),
+       19: ("", {30:9.5, 31:3.5}),
        20: ("", {15:13.5, 18:2.5, 21:8}),
        21: ("", {20:8, 22:6, 24:6}),
        22: ("", {21:6, 28:10}),
@@ -109,9 +191,39 @@ schoolLayout = {1: ("", {2:9}),
        28: ("", {22:10, 27:6}),
        29: ("", {30:6}),
        30: ("", {26:8, 29:6, 19:9.5}),
-       31: ("", {27:6, 32:4.5, 33:2.5, 19:3.5}),
-       32: ("", {31:4.5, 33:3.5, 19:2.5}),
-       33: ("", {31:2.5, 32:3.5, 19:4.5}),
+       31: ("", { 19:3.5, 27:6}),
       }
 
-print(a_star(schoolLayout, 3, 33))
+
+mean_std_max = []
+stdev_std_max = []
+mean_my_max = []
+stdev_my_max = []
+meetpunten = list(range(1, 32, 1))
+for i in meetpunten:
+    std = []
+    my = []
+    for j in meetpunten:
+        t1 = time.time()
+        res = DPath(schoolLayout, i, j)
+        t2 = time.time()
+        std.append(t2 - t1)
+        t1 = time.time()
+        res = a_star(schoolLayout, i, j)
+        t2 = time.time()
+        my.append(t2 - t1)
+    mean_std_max.append(stats.mean(std))
+    stdev_std_max.append(stats.stdev(std))
+    mean_my_max.append(stats.mean(my))
+    stdev_my_max.append(stats.stdev(my))
+
+plt.plot(meetpunten, mean_std_max, 'b-')
+plt.fill_between(meetpunten, np.array(mean_std_max) - np.array(stdev_std_max),
+                 np.array(mean_std_max) + np.array(stdev_std_max), color='b', alpha=0.3)
+plt.plot(meetpunten, mean_my_max, 'r-')
+plt.fill_between(meetpunten, np.array(mean_my_max) - np.array(stdev_my_max),
+                 np.array(mean_my_max) + np.array(stdev_my_max), color='r', alpha=0.3)
+plt.xlabel("Start node")
+plt.ylabel("time (seconds)")
+plt.legend(["Dijksta", "A-Start"], loc='upper left')
+plt.show()

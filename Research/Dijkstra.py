@@ -1,10 +1,7 @@
-from matplotlib import pyplot as plt
-import numpy as np
 import copy
-import time
-import statistics as stats
 
-def findNeighbours(n,graph):
+
+def findNeighbours(n, graph):
     neighbours = set()
     for group in graph.E:
         if (group.v1 == n) or (group.v2 == n):
@@ -13,7 +10,6 @@ def findNeighbours(n,graph):
             elif group.v2 != n:
                 neighbours.add(group.v2)
     return neighbours
-
 
 
 def minDist(N):
@@ -40,7 +36,7 @@ def getPath(node, start, path):
     key = list(node.keys())[0]
     path.append(key)
 
-    if (key == start):
+    if key == start:
         return path
 
     getPath(node[key][1]["prev"], start, path)
@@ -55,10 +51,9 @@ def DPath(schoolLayout, start, finish):
 
     graph[start][1]["dist"] = 0
     S = {}
-    N = {}
-    N[start] = graph[start]
+    N = {start: graph[start]}
 
-    while (len(N) != 0):
+    while len(N) != 0:
         n = minDist(N)
         n_key = list(n.keys())[0]
         n[n_key][1]["solved"] = True
@@ -71,28 +66,25 @@ def DPath(schoolLayout, start, finish):
 
         neighbours = findNeighboursD(n, graph, n_key)
         for m in neighbours:
-            if (neighbours[m][1]["solved"] == False):
+            if not neighbours[m][1]["solved"]:
                 if m not in N:
                     N[m] = graph[m]
-
                 altDistance = n[n_key][1]["dist"] + n[n_key][1][m]
-                if (neighbours[m][1]["dist"] > altDistance):
+                if neighbours[m][1]["dist"] > altDistance:
                     neighbours[m][1]["dist"] = altDistance
                     neighbours[m][1]["prev"] = n
 
-    node = {}
-    node[finish] = graph[finish]
+    node = {finish: graph[finish]}
     path = []
     getPath(node, start, path)
     path.reverse()
     return node[finish][1]["dist"], path
 
 
-DGraph = dict
 schoolLayout = {1: ("", {2:9}),
-       2: ("", {1:9, 3:11}),
+       2: ("", {1:9, 3:11, 35:1.5}),
        3: ("", {2:11, 8:8.5}),
-       4: ("", {5:6, 6:5}),
+       4: ("", {5:6, 6:5, 35:2}),
        5: ("", {4:6}),
        6: ("", {4:5, 7:6, 11:4}),
        7: ("", {6:6, 14:10}),
@@ -118,10 +110,12 @@ schoolLayout = {1: ("", {2:9}),
        27: ("", {24:4, 28:6, 31:6}),
        28: ("", {22:10, 27:6}),
        29: ("", {30:6}),
-       30: ("", {26:8, 29:6, 31:13}),
-       31: ("", {27:6, 30:13, 32:4.5, 33:2.5}),
-       32: ("", {31:4.5, 33:3.5}),
-       33: ("", {31:2.5, 32:3.5})
+       30: ("", {26:8, 29:6, 34:9.5}),
+       31: ("", {27:6, 32:4.5, 33:2.5, 34:3.5}),
+       32: ("", {31:4.5, 33:3.5, 34:2.5}),
+       33: ("", {31:2.5, 32:3.5, 34:4.5}),
+       34: ("", {30:13,31:3.5, 32:2.5,33:4.5}),
+       35: ("", {2:1.5, 4:2})
       }
 
-print(DPath(schoolLayout, 21, 28))
+print(DPath(schoolLayout, 1, 30))
