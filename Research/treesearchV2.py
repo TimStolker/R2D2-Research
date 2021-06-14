@@ -95,9 +95,9 @@ def check_finished(path_state: List, end_node: int):
 
 
 def make_move(tree_node, move):
-    if not move in tree_node.parent.state:
-        tree_node.state.append(move)
-        return tree_node.state
+    if not move in tree_node.parent.gstate_:
+        tree_node.gstate_.append(move)
+        return tree_node.gstate_
     else:
         # this shouldn't happen
         return None
@@ -113,18 +113,18 @@ def backup_value(node: TreeNode, val):
 
 
 def expand_tree_rec(tree_node):
-    tree_node.finished = check_finished(tree_node.state, end)
+    tree_node.finished = check_finished(tree_node.gstate_, end)
     if tree_node.finished or len(tree_node.valid_moves) == 0:
         return tree_node
     elif root.last_move is not None and check_finished(root.state, end):
         return tree_node
-    elif len(tree_node.valid_moves) > len(tree_node.children):
+    elif len(tree_node.valid_moves) > len(tree_node.children_):
         new_moves = tree_node.valid_moves
         try_this_move = choice(new_moves)
         new_state = make_move(tree_node, try_this_move)
         new_moves.remove(try_this_move)
         leaf = TreeNode(school_layout[try_this_move], new_state, tree_node, tree_node.id)
-        tree_node.children.append(leaf)
+        tree_node.children_.append(leaf)
         return leaf
     return expand_tree_rec(tree_node.best_child())
 
