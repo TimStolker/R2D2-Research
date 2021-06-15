@@ -210,5 +210,34 @@ plt.fill_between(meetpunten, np.array(mean_my_max) - np.array(stdev_my_max),
                  np.array(mean_my_max) + np.array(stdev_my_max), color='r', alpha=0.3)
 plt.xlabel("Start node")
 plt.ylabel("time (seconds)")
-plt.legend(["Dijksta", "A-Start"], loc='upper left')
+plt.legend(["Dijksta", "A-Star"], loc='upper left')
+plt.show()
+
+mean_std_max = []
+stdev_std_max = []
+mean_my_max = []
+stdev_my_max = []
+meetpunten = list(range(1, 32, 1))
+for i in meetpunten:
+    std = []
+    my = []
+    for j in meetpunten:
+        res = DPath(schoolLayout, i, j)
+        std.append(res[0])
+        res = a_star(schoolLayout, i, j)
+        my.append(res[0])
+    mean_std_max.append(stats.mean(std))
+    stdev_std_max.append(stats.stdev(std))
+    mean_my_max.append(stats.mean(my))
+    stdev_my_max.append(stats.stdev(my))
+
+plt.plot(meetpunten, mean_std_max, 'b-')
+plt.fill_between(meetpunten, np.array(mean_std_max) - np.array(stdev_std_max),
+                 np.array(mean_std_max) + np.array(stdev_std_max), color='b', alpha=0.3)
+plt.plot(meetpunten, mean_my_max, 'r-')
+plt.fill_between(meetpunten, np.array(mean_my_max) - np.array(stdev_my_max),
+                 np.array(mean_my_max) + np.array(stdev_my_max), color='r', alpha=0.3)
+plt.xlabel("Start node")
+plt.ylabel("length")
+plt.legend(["Dijksta", "A-Star"], loc='upper left')
 plt.show()
