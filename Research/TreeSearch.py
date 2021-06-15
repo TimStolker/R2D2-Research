@@ -1,3 +1,4 @@
+from math import inf
 from copy import deepcopy
 from random import choice
 from typing import Tuple, List, Dict, AnyStr
@@ -14,6 +15,7 @@ class TreeNode:
     def __init__(self, node_id: int, start_node: int, end_node: int, gstate: List,
                  valid_move_list: List, school_layout: Dict[int, Tuple[AnyStr, Dict[int, int]]], parent_node=None,
                  last_move=None):
+        self.value = 0
         self.id = node_id
         self.gstate: List = gstate
         self.start_node = start_node
@@ -27,13 +29,13 @@ class TreeNode:
         self.last_move: int = last_move
 
     def best_move(self):
-        self.value = value_out(self)
-        best_value = self.value
-        for ch in self.children:
-            ch.value = value_out(ch)
-            if ch.value is best_value:
-                return ch.last_move
-        return None  # als het geen children heeft
+        highest_value = self.children[0].Q / self.children[0].N
+        best_child = self.children[0]
+        for child in self.children:
+            if child.Q / child.N > highest_value:
+                highestVal = child.Q / child.N
+                best_child = child
+        return best_child.id
 
     def __repr__(self):
         return f"{self.id}: {self.gstate}"
@@ -52,23 +54,24 @@ class TreeNode:
         :return: the child with highest value.
         """
         value = 0
-        child = self.children[0]
+        child = choice(self.children)
         chld: TreeNode
         for chld in self.children:
-            val = self.uct()
-            if val > value:
-                value = val
-                child = chld
+            if chld.value < child.value:
+                chld = child
         return child
 
 
 def valid_moves(id: int, gstate: List[int]):
-    moves = list()
+    moves = []
     for key in schoolLayout[id][1].keys():
         if key in gstate:
             continue
         else:
-            moves.append(key)
+            if key == id:
+                continue
+            else:
+                moves.append(key)
     return moves
 
 
@@ -80,13 +83,12 @@ def check_finished(gstate: List[int], end_node: int):
     :return: boolean
     """
     node: int
-    for node in gstate:
-        if node == end_node:
+    if end_node in gstate:
             return True
     return False
 
 
-def backup_value(node: TreeNode, val):
+def backup_value(node: TreeNode, val: int):
     """
     Calculates the value of a node, according to the value of it's children.
 
@@ -113,7 +115,7 @@ def make_state(tree_node: TreeNode, move, schoolLayout):
 def tree2String(tree_node, prefix=""):
     result = ""
     if (tree_node is not None):
-        result += prefix + str(int(len(prefix) / 2)) + ": " + str(tree_node.gstate) + "\n"
+        result += f"{prefix + str(tree_node.id)}: {str(tree_node.gstate)}\n"
         result += prefix + "{\n"
         cprefix = (prefix + "  ")
         for child in tree_node.children:
@@ -131,9 +133,12 @@ def expandTreeRec(tree_node: TreeNode, start: int, end: int, school_layout: Dict
     :return: the leaf node.
     """
     tree_node.finished = check_finished(tree_node.gstate, end)
-    if tree_node.finished or len(tree_node.valid_move_list) == 0:
+    if tree_node.finished:
         return tree_node
-    elif tree_node.last_move is not None and check_finished(tree_node.gstate, end):
+    if tree_node.last_move is not None and check_finished(tree_node.gstate, end):
+        return tree_node
+    elif len(tree_node.valid_move_list) == 0:
+        tree_node.value += 100
         return tree_node
     elif len(tree_node.valid_move_list) > len(tree_node.children):
         new_moves = tree_node.valid_move_list
@@ -141,13 +146,14 @@ def expandTreeRec(tree_node: TreeNode, start: int, end: int, school_layout: Dict
         new_moves.remove(try_this_move)
         new_state = deepcopy(tree_node.gstate)
         new_state.append(try_this_move)
-        leaf = TreeNode(try_this_move, start, end, new_state, new_moves, school_layout, tree_node, try_this_move)
+        leaf = TreeNode(try_this_move, start, end, new_state, valid_moves(try_this_move, new_state), school_layout, tree_node, try_this_move)
         tree_node.children.append(leaf)
-        return leaf
+        val = rollout(leaf)
+        backup_value(leaf, val)
     return expandTreeRec(tree_node.best_child(), start, end, school_layout)
 
 def move(id: int, gstate: List[int], move: int):
-    test_state = deepcopy(gstate)
+    test_state = gstate
     valids = valid_moves(id, test_state)
     if move not in valids:
         return False, check_finished(test_state, end), test_state
@@ -157,13 +163,15 @@ def move(id: int, gstate: List[int], move: int):
 
 def rollout(leaf: TreeNode):
     if leaf.parent_node is not None:
-        new_state = []
-        while (True):
-            leaf.last_move = choice(valid_moves(leaf.id, leaf.gstate))
-            x, finished, new_state = move(leaf.id, leaf.gstate, leaf.last_move)
-            leaf.valid_move_list = valid_moves(leaf.id, leaf.gstate)
-            if check_finished(leaf.gstate, end) or len(valid_moves(leaf.id, new_state)) == 0:
-                break
+        new_state = deepcopy(leaf.gstate)
+        if len(leaf.valid_move_list) != 0:
+            while (True):
+                try_this_move = choice(valid_moves(leaf.id, new_state))
+                leaf.last_move = try_this_move
+                is_valid_move, finished, new_state = move(leaf.id, new_state, leaf.last_move)
+                # leaf.valid_move_list = valid_moves(leaf.id, leaf.gstate)
+                if check_finished(new_state, end) or len(valid_moves(leaf.id, new_state)) == 0:
+                    break
     else:
         return None
 
@@ -207,17 +215,18 @@ if __name__ == '__main__':
                     31: ("", {19: 3.5, 27: 6}),
                     }
 
-    start = 15
-    end = 31
+    start = 9
+    end = 7
 
-    start_state = [15]
+    start_state = [start]
     start_moves = list(schoolLayout[start][1].keys())
 
-    root = TreeNode(15, 15, 31, gstate=start_state, valid_move_list=start_moves, school_layout=schoolLayout, parent_node=None, last_move=None)
-    for i in range(10):
+    root = TreeNode(start, start, end, gstate=start_state, valid_move_list=start_moves, school_layout=schoolLayout, parent_node=None, last_move=None)
+    for i in range(5):
+        root.valid_move_list = valid_moves(root.id, start_state)
         leaf = expandTreeRec(tree_node=root, start=start, end=end, school_layout=schoolLayout)
-        leaf_val = rollout(leaf)
-        backup_value(leaf, leaf_val)
+        leaf_reward = rollout(leaf)
+        backup_value(leaf, leaf_reward)
     print(root.best_move())
     print(tree2String(root))
 
