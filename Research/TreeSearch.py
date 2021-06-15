@@ -147,7 +147,7 @@ def expandTreeRec(tree_node: TreeNode, start: int, end: int, school_layout: Dict
     return expandTreeRec(tree_node.best_child(), start, end, school_layout)
 
 def move(id: int, gstate: List[int], move: int):
-    test_state = gstate
+    test_state = deepcopy(gstate)
     valids = valid_moves(id, test_state)
     if move not in valids:
         return False, check_finished(test_state, end), test_state
@@ -157,16 +157,17 @@ def move(id: int, gstate: List[int], move: int):
 
 def rollout(leaf: TreeNode):
     if leaf.parent_node is not None:
+        new_state = []
         while (True):
             leaf.last_move = choice(valid_moves(leaf.id, leaf.gstate))
             x, finished, new_state = move(leaf.id, leaf.gstate, leaf.last_move)
             leaf.valid_move_list = valid_moves(leaf.id, leaf.gstate)
-            if check_finished(leaf.gstate, end) or len(leaf.valid_move_list) == 0:
+            if check_finished(leaf.gstate, end) or len(valid_moves(leaf.id, new_state)) == 0:
                 break
     else:
         return None
 
-    if check_finished(leaf.gstate, end):
+    if check_finished(new_state, end):
         return 1
     else:
         return 0
