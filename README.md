@@ -1,7 +1,7 @@
 # R2D2-Research
 
 ## Team 5
-  - Alexander De Graaff
+  - Alexander de Graaff
   - Jippe Heijnen
   - Tim Stolker
 
