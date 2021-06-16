@@ -1,157 +1,212 @@
+from copy import deepcopy
+from random import choice
+from typing import Tuple, List, Dict, AnyStr
 
-def getState(node, schoolLayout):
-    stateList = []
-    for n in schoolLayout[node]:
-        stateList.append(n);
-
-    return stateList
-
-def checkFinished(path_state, end_node):
-    #print("path: ",path_state)
-    #print("end: ",end_node)
-    if path_state == end_node:
-        return True
-    else:
-        return False
 
 def value_out(node):
-    if(node.finished):
+    if (node.finished):
         return 1
     else:
         return 0
 
 
-class PathTreeNode:
-    def __init__(self, gstate, end_node, parentNode=None, last_move=None):
-        self.value = None
-        self.state = gstate
-        self.finished = checkFinished(self.state, end_node)
-        self.parent = parentNode
+class TreeNode:
+    def __init__(self, node_id: int, start_node: int, end_node: int, gstate: List,
+                 valid_move_list: List, school_layout: Dict[int, Tuple[AnyStr, Dict[int, int]]], parent_node=None,
+                 last_move=None):
+        self.value = 0
+        self.id = node_id
+        self.gstate: List = gstate
+        self.start_node = start_node
+        self.end_node = end_node
+        self.valid_move_list = valid_move_list
+        self.finished = check_finished(self.gstate, end_node)
+        self.parent_node: TreeNode = parent_node
         self.children = []
-        self.previous_move = last_move
-
-    def printNode(self):
-        # print("Node:\n")
-        print("  has_parent: " + str(self.parent is not None))
-        print("  no. of children: " + str(len(self.children)))
-        print("  path state:")
-        print(state)
-
-
-class pathTreeNode2:
-    def __init__(self, gstate, end_node, parentNode=None, last_move=None):
-        self.value = None
-        self.state = gstate
-        self.finished = checkFinished(self.state, end_node)
-        self.parent = parentNode
-        self.children = []
-        self.move = last_move
+        self.N = 0
+        self.Q = 0
+        self.last_move: int = last_move
 
     def best_move(self):
-        self.value = value_out(self)
-        best_value = self.value
-        for ch in self.children:
-            ch.value = value_out(ch)
-            if ch.value is best_value:
-                return ch.move
-        return None  #als het geen children heeft
+        highest_value = self.children[0].Q / self.children[0].N
+        best_child = self.children[0]
+        for child in self.children:
+            if child.Q / child.N > highest_value:
+                highestVal = child.Q / child.N
+                best_child = child
+        return best_child.id
 
-def validMoves(state):
+    def __repr__(self):
+        return f"{self.id}: {self.gstate}"
+
+    def __eq__(self, other):
+        if isinstance(other, TreeNode):
+            return self.id == other.id
+        elif isinstance(other, int):
+            return self.id == other
+
+    def uct(self):
+        """
+        Calculate node value
+        :return: int: value
+        """
+        return self.Q / self.N
+
+    def best_child(self):
+        """
+        Find the best child in the tree
+        Runtime-complexity of O(n) because you only loop though all children once.
+        :return: the child with highest value.
+        """
+        value = 0
+        chosen_child = choice(self.children)
+        child: TreeNode
+        for child in self.children:
+            val = child.uct()
+            if val < value:
+                chosen_child = child
+            elif child.value < chosen_child.value:
+                if child.N < chosen_child.N:
+                    chosen_child = child
+            if child.N < chosen_child.N:
+                chosen_child = child
+        return chosen_child
+
+
+def valid_moves(id: int, gstate: List[int], school_layout):
     moves = []
-    for key in state[1]:
-        moves.append(key)
+    for key in school_layout[id][1].keys():
+        if key in gstate:
+            continue
+        else:
+            if key == id:
+                continue
+            else:
+                moves.append(key)
     return moves
 
-def makeMove(tree_node, move, schoolLayout):
-    return schoolLayout[move] #lijst van mogelijke zetten en lengtes
 
-def expandAllByOne(tree_node, valid_moves, schoolLayout, end_node):
-    for move in valid_moves:
-        new_state = makeMove(tree_node, move, schoolLayout)
-        tree_node.children.append(PathTreeNode(new_state, end_node, parentNode=tree_node, last_move=move))
-    return True
+def check_finished(gstate: List[int], end_node: int):
+    """
+    Checks is the goal node has been reached
+    :param gstate: list of traversed nodes.
+    :param end_node: the key of the end node.
+    :return: boolean
+    """
+    node: int
+    if end_node in gstate:
+        return True
+    return False
+
+
+def backup_value(node: TreeNode, val: int):
+    """
+    Calculates the value of a node, according to the value of it's children.
+    complexity of O(d), where d stands for the depth of the tree.
+    :param node:
+    :param val:
+    :return:
+    """
+    if (node.parent_node is not None):
+        while (node is not None):
+            node.N += 1
+            node.Q = node.Q - val
+
+            node = node.parent_node
+
+
+def make_state(tree_node: TreeNode, move, schoolLayout):
+    valid_moves = tree_node.valid_move_list
+    if move in valid_moves:
+        return schoolLayout[move]  # lijst van mogelijke zetten en lengtes
+
 
 def tree2String(tree_node, prefix=""):
-    result=""
-    if(tree_node is not None):
-        result+=prefix+str(int(len(prefix)/2))+": "+str(tree_node.state)+"\n"
-        result+=prefix+"{\n"
-        if(tree_node.value != None):
-            result+=prefix+ str(tree_node.value)
-        cprefix=(prefix+"  ")
+    result = ""
+    if (tree_node is not None):
+        result += f"{prefix + str(tree_node.id)}: {str(tree_node.gstate)}\n"
+        result += prefix + "{\n"
+        cprefix = (prefix + "  ")
         for child in tree_node.children:
-            result+=tree2String(child,cprefix)
-        result+=prefix+"}\n"
+            result += tree2String(child, cprefix)
+        result += prefix + "}\n"
     return result
 
-def expandTreeRec(tree_node, valid_moves, schoolLayout, end_node):
-    if(len(valid_moves)==0):
-        valid_moves = validMoves(tree_node.state)
-        if tree_node == end_node:
-            print("REE")
-            return False
-    for i in range(len(valid_moves)):
-        new_state = makeMove(tree_node.state, valid_moves[-1], schoolLayout)
-        tree_node.children.append(pathTreeNode2(new_state, end_node, parentNode=tree_node, last_move=valid_moves[-1]))
-        valid_moves.remove(valid_moves[-1])
 
-        expandTreeRec(tree_node.children[i], [], schoolLayout, end_node)
-    return tree_node
+def findSpot(tree_node, school_layout, start, end):
+    if check_finished(tree_node.gstate, end):
+        tree_node.finished = True
+        return tree_node
+    if len(tree_node.valid_move_list) == 0:
+        tree_node.value += 100
+        return tree_node
+    elif len(tree_node.valid_move_list) > len(tree_node.children):
+        return expand(tree_node, tree_node.valid_move_list[len(tree_node.children)], school_layout, start, end)
+    return findSpot(tree_node.best_child(), school_layout, start, end)
 
+def expand(tree_node, move, school_layout, start, end):
+    new_valid_moves = list(school_layout[move][1].keys())
+    new_valid_moves.remove(tree_node.id) # remove parent_node where we came from
 
+    new_state = deepcopy(tree_node.gstate)
+    new_state.append(move)
 
-schoolLayout = {1: ("", {2:9}),
-       2: ("", {1:9, 3:11}),
-       3: ("", {2:11, 8:8.5}),
-       4: ("", {5:6, 6:5}),
-       5: ("", {4:6}),
-       6: ("", {4:5, 7:6, 11:4}),
-       7: ("", {6:6, 14:10}),
-       8: ("", {3:8.5, 9:6, 10:2}),
-       9: ("", {8:6}),
-       10: ("", {8:2, 11:13, 12:6}),
-       11: ("", {6:4, 10:13, 13:6}),
-       12: ("", {10:6, 15:17}),
-       13: ("", {11:6, 14:6, 16:16.5}),
-       14: ("", {7:10, 13:6}),
-       15: ("", {12:17, 20:13.5, 23:19.5}),
-       16: ("", {13:16.5, 17:2, 18:3.5, 19:4}),
-       17: ("", {16:2, 18:4, 19:3.5}),
-       18: ("", {16:3.5, 17:4, 19:2, 20:2.5}),
-       19: ("", {16:4, 17:3.5, 18:2}),
-       20: ("", {15:13.5, 18:2.5, 21:8}),
-       21: ("", {20:8, 22:6, 24:6}),
-       22: ("", {21:6, 28:10}),
-       23: ("", {15:19.5, 24:13, 26:2}),
-       24: ("", {21:6, 23:13, 27:4}),
-       25: ("", {26:6}),
-       26: ("", {23:2, 25:6, 30:8}),
-       27: ("", {24:4, 28:6, 31:6}),
-       28: ("", {22:10, 27:6}),
-       29: ("", {30:6}),
-       30: ("", {26:8, 29:6, 31:13}),
-       31: ("", {27:6, 30:13, 32:4.5, 33:2.5}),
-       32: ("", {31:4.5, 33:3.5}),
-       33: ("", {31:2.5, 32:3.5})
-      }
-
-start = 15
-end = 31
-
-validMovesEnd = tuple(getState(end,schoolLayout)) #Dit wordt gebruikt om te checken bij finished
-state = getState(start,schoolLayout)
-
-root = PathTreeNode(state, validMovesEnd, parentNode=None, last_move=None)
-testroot = pathTreeNode2(state, validMovesEnd, parentNode=None, last_move=None)
+    leaf = TreeNode(move, start, end, new_state, new_valid_moves, school_layout, tree_node, move)
+    tree_node.children.append(leaf)
+    return leaf
 
 
-moves = validMoves(state)
-testmoves = validMoves(testroot.state)
+def move(id: int, gstate: List[int], move: int, end, school_layout):
+    test_state = gstate
+    valids = valid_moves(id, test_state, school_layout)
+    if move not in valids:
+        return False, check_finished(test_state, end), test_state
+    else:
+        test_state.append(move)
+        return True, check_finished(test_state, end), test_state
 
-testroot = expandTreeRec(testroot, testmoves, schoolLayout, validMovesEnd)
 
-print(testroot.best_move())
-print(tree2String(testroot))
+def rollout(leaf: TreeNode, end, school_layout):
+    if leaf.parent_node is not None:
+        new_state = deepcopy(leaf.gstate)
+        if len(valid_moves(leaf.id, leaf.gstate, school_layout)) != 0:
+            while (True):
+                try_this_move = choice(valid_moves(leaf.id, new_state, school_layout))
+                leaf.last_move = try_this_move
+                is_valid_move, finished, new_state = move(leaf.id, new_state, leaf.last_move, end, school_layout)
+                if check_finished(new_state, end) or len(valid_moves(leaf.id, new_state, school_layout)) == 0:
+                    break
+    else:
+        return None
 
-#expandAllByOne(root, moves, schoolLayout, end)
-#print(tree2String(root))
+    if check_finished(new_state, end):
+        return 1
+    else:
+        return 0
+
+def calc_path_len(tree_node: TreeNode, school_layout):
+    if tree_node.parent_node is not None:
+        path = calc_path_len(tree_node.parent_node, school_layout) + \
+               school_layout[tree_node.parent_node.id][1][tree_node.id]
+        return path
+    else: return 0
+
+def MCTS(school_layout: Dict[int, Tuple[AnyStr, Dict[int, int]]], start, end):
+
+    start_state = [start]
+    start_moves = list(school_layout[start][1].keys())
+
+    root = TreeNode(start, start, end, gstate=start_state, valid_move_list=start_moves, school_layout=school_layout, parent_node=None, last_move=None)
+    root.valid_move_list = valid_moves(root.id, start_state, school_layout)
+    shortest_path = 0
+    shortest_way = []
+    for i in range(100):
+        leaf = findSpot(root, school_layout, start, end)
+        leaf_reward = rollout(leaf, end, school_layout)
+        backup_value(leaf, leaf_reward)
+        if leaf.id == end:
+            path = calc_path_len(leaf, school_layout)
+            if path < shortest_path:
+                shortest_path = path
+                shortest_way = leaf.gstate
+    return shortest_path, shortest_way
