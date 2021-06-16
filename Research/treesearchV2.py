@@ -66,9 +66,10 @@ class TreeNode:
             val = child.uct()
             if val < value:
                 chosen_child = child
-            elif child.N > chosen_child.N:
-                chosen_child = child
             elif child.value < chosen_child.value:
+                if child.N < chosen_child.N:
+                    chosen_child = child
+            elif child.N < chosen_child.N:
                 chosen_child = child
         return chosen_child
 
@@ -134,6 +135,9 @@ def tree2String(tree_node, prefix=""):
 
 
 def findSpot(tree_node, school_layout):
+    if check_finished(tree_node.gstate, end):
+        tree_node.finished = True
+        return tree_node
     if len(tree_node.valid_move_list) == 0:
         tree_node.value += 100
         return tree_node
@@ -168,12 +172,9 @@ def rollout(leaf: TreeNode):
         new_state = deepcopy(leaf.gstate)
         if len(valid_moves(leaf.id, leaf.gstate)) != 0:
             while (True):
-                #print(leaf.id, new_state)
-                #print("moves:",valid_moves(leaf.id, new_state))
                 try_this_move = choice(valid_moves(leaf.id, new_state))
                 leaf.last_move = try_this_move
                 is_valid_move, finished, new_state = move(leaf.id, new_state, leaf.last_move)
-                # leaf.valid_move_list = valid_moves(leaf.id, leaf.gstate)
                 if check_finished(new_state, end) or len(valid_moves(leaf.id, new_state)) == 0:
                     break
     else:
