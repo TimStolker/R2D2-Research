@@ -40,6 +40,12 @@ class TreeNode:
     def __repr__(self):
         return f"{self.id}: {self.gstate}"
 
+    def __eq__(self, other):
+        if isinstance(other, TreeNode):
+            return self.id == other.id
+        elif isinstance(other, int):
+            return self.id == other
+
     def uct(self):
         """
         Calculate node value
@@ -54,12 +60,17 @@ class TreeNode:
         :return: the child with highest value.
         """
         value = 0
-        child = choice(self.children)
-        chld: TreeNode
-        for chld in self.children:
-            if chld.value < child.value:
-                chld = child
-        return child
+        chosen_child = choice(self.children)
+        child: TreeNode
+        for child in self.children:
+            val = child.uct()
+            if val < value:
+                chosen_child = child
+            elif child.N > chosen_child.N:
+                chosen_child = child
+            elif child.value < chosen_child.value:
+                chosen_child = child
+        return chosen_child
 
 
 def valid_moves(id: int, gstate: List[int]):
@@ -132,7 +143,7 @@ def findSpot(tree_node, school_layout):
 
 def expand(tree_node, move, school_layout):
     new_valid_moves = list(school_layout[move][1].keys())
-    new_valid_moves.remove(tree_node.id)
+    new_valid_moves.remove(tree_node.id) # remove parent_node where we came from
 
     new_state = deepcopy(tree_node.gstate)
     new_state.append(move)
@@ -155,7 +166,7 @@ def move(id: int, gstate: List[int], move: int):
 def rollout(leaf: TreeNode):
     if leaf.parent_node is not None:
         new_state = deepcopy(leaf.gstate)
-        if len(leaf.valid_move_list) != 0:
+        if len(valid_moves(leaf.id, leaf.gstate)) != 0:
             while (True):
                 #print(leaf.id, new_state)
                 #print("moves:",valid_moves(leaf.id, new_state))
