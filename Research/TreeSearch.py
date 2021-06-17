@@ -204,9 +204,9 @@ def MCTS(school_layout: Dict[int, Tuple[AnyStr, Dict[int, int]]], start, end):
     root = TreeNode(start, start, end, gstate=start_state, valid_move_list=start_moves, school_layout=school_layout,
                     parent_node=None, last_move=None)
     root.valid_move_list = valid_moves(root.id, start_state, school_layout)
-    shortest_path = inf
+    shortest_path = 200
     shortest_way = []
-    for i in range(100):
+    for i in range(150):
         leaf = findSpot(root, school_layout, start, end)
         leaf_reward = rollout(leaf, end, school_layout)
         backup_value(leaf, leaf_reward)
