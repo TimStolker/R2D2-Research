@@ -61,6 +61,7 @@ if __name__ == '__main__':
             res = a_star(schoolLayout, i, j)
             t2 = time.time()
             astar.append(t2 - t1)
+            t1 = time.time()
             res = MCTS(schoolLayout, i, j)
             t2 = time.time()
             tree_search.append(t2 - t1)
@@ -116,7 +117,7 @@ if __name__ == '__main__':
     plt.plot(meetpunten, mean_a_star, 'r-')
     plt.fill_between(meetpunten, np.array(mean_a_star) - np.array(stdev_a_star),
                      np.array(mean_a_star) + np.array(stdev_a_star), color='r', alpha=0.3)
-    plt.plot(meetpunten, mean_a_star, 'g-')
+    plt.plot(meetpunten, mean_tree_search, 'g-')
     plt.fill_between(meetpunten, np.array(mean_tree_search) - np.array(stdev_tree_search),
                      np.array(mean_tree_search) + np.array(stdev_tree_search), color='g', alpha=0.3)
     plt.xlabel("Start node")

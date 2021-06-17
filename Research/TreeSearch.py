@@ -2,6 +2,8 @@ from copy import deepcopy
 from random import choice
 from typing import Tuple, List, Dict, AnyStr
 
+from numpy import inf
+
 
 def value_out(node):
     if (node.finished):
@@ -144,9 +146,10 @@ def findSpot(tree_node, school_layout, start, end):
         return expand(tree_node, tree_node.valid_move_list[len(tree_node.children)], school_layout, start, end)
     return findSpot(tree_node.best_child(), school_layout, start, end)
 
+
 def expand(tree_node, move, school_layout, start, end):
     new_valid_moves = list(school_layout[move][1].keys())
-    new_valid_moves.remove(tree_node.id) # remove parent_node where we came from
+    new_valid_moves.remove(tree_node.id)  # remove parent_node where we came from
 
     new_state = deepcopy(tree_node.gstate)
     new_state.append(move)
@@ -184,21 +187,24 @@ def rollout(leaf: TreeNode, end, school_layout):
     else:
         return 0
 
+
 def calc_path_len(tree_node: TreeNode, school_layout):
     if tree_node.parent_node is not None:
         path = calc_path_len(tree_node.parent_node, school_layout) + \
                school_layout[tree_node.parent_node.id][1][tree_node.id]
         return path
-    else: return 0
+    else:
+        return 0
+
 
 def MCTS(school_layout: Dict[int, Tuple[AnyStr, Dict[int, int]]], start, end):
-
     start_state = [start]
     start_moves = list(school_layout[start][1].keys())
 
-    root = TreeNode(start, start, end, gstate=start_state, valid_move_list=start_moves, school_layout=school_layout, parent_node=None, last_move=None)
+    root = TreeNode(start, start, end, gstate=start_state, valid_move_list=start_moves, school_layout=school_layout,
+                    parent_node=None, last_move=None)
     root.valid_move_list = valid_moves(root.id, start_state, school_layout)
-    shortest_path = 0
+    shortest_path = inf
     shortest_way = []
     for i in range(100):
         leaf = findSpot(root, school_layout, start, end)
@@ -210,3 +216,5 @@ def MCTS(school_layout: Dict[int, Tuple[AnyStr, Dict[int, int]]], start, end):
                 shortest_path = path
                 shortest_way = leaf.gstate
     return shortest_path, shortest_way
+
+
