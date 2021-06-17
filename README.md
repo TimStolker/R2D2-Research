@@ -12,3 +12,5 @@ In dit onderzoek gaat er onderzocht worden hoe pathfinding algoritmes werken, wa
 
 Wanneer er onderzocht is welk algoritme het beste is, kan deze worden gebruikt op een robot. De robot runt dan op het meest accurate en snelste algoritme, dit zorgt ervoor dat de robot goed kan opereren in een ruimte. Een voorbeeld van een robot waarbij pathfinding erg van belang is, zijn robots in een warenhuis. Deze robots moeten efficiënt werken om zo snel mogelijk materiaal te kunnen verplaatsen. Als het beste algoritme hiervoor wordt gekozen kan er tijd en geld bespaard worden.
 
+![graph2.png](graph.png)
+![graph2.png](graph2.png)
