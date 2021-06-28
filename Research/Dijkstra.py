@@ -1,17 +1,6 @@
 import copy
 
 
-def findNeighbours(n, graph):
-    neighbours = set()
-    for group in graph.E:
-        if (group.v1 == n) or (group.v2 == n):
-            if group.v1 != n:
-                neighbours.add(group.v1)
-            elif group.v2 != n:
-                neighbours.add(group.v2)
-    return neighbours
-
-
 def minDist(N):
     minValue = float('inf')
     minDict = {}
