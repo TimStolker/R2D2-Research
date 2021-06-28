@@ -103,8 +103,7 @@ if __name__ == '__main__':
             res = a_star(schoolLayout, i, j)
             astar.append(res[0])
             res = MCTS(schoolLayout, i, j)
-            if res[0] != 0:
-                tree_search.append(res[0])
+            tree_search.append(res[0])
         mean_d_path.append(stats.mean(d_path))
         stdev_d_path.append(stats.stdev(d_path))
         mean_a_star.append(stats.mean(astar))

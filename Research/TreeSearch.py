@@ -65,13 +65,13 @@ class TreeNode:
         child: TreeNode
         for child in self.children:
             val = child.uct()
-            if val < value:
+            if child.N < chosen_child.N and val == 0:
+                chosen_child = child
+            elif val < value:
                 chosen_child = child
             elif child.value < chosen_child.value:
                 if child.N < chosen_child.N:
                     chosen_child = child
-            if child.N < chosen_child.N:
-                chosen_child = child
         return chosen_child
 
 
